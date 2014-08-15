@@ -6,14 +6,17 @@ import com.springapp.JSonClasses.Item;
 import com.springapp.JSonClasses.JsonResponse;
 import com.springapp.JSonClasses.JsonResponseCollection;
 import com.springapp.JSonClasses.JsonVideo;
+import com.springapp.Uploader.ConfluentUploader;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import java.io.Console;
+import javax.servlet.http.HttpServletRequest;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,20 +55,16 @@ public class MainController {
 //        return "hello";
 //    }
 
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(method=RequestMethod.POST)
     @ResponseBody
-    public JsonResponse create(@RequestBody JsonVideo video
-                              ){
-        String desc = video.description;
-//        Video entity = new Video();
-//        entity.setCreatedDate(createdAt);
-//        entity.setVideoUrl("");
-//        entity.setImageUrl("");
-//        entity.setDescription(description);
-//        System.out.println(createdAt + description);
-//        VideoDAO.getInstance().add(entity);
-        return new JsonResponse(true, "OK");
-    }
+    public JsonResponse handleFileUpload(MultipartHttpServletRequest httpServletRequest,
+                                                @RequestParam("description") String description,
+                                                @RequestParam("createdAt") String createdAt,
+                                                @RequestParam("video") MultipartFile file) throws IOException {
+
+        ConfluentUploader.getInstance().saveObject(file, createdAt, description);
+        return new JsonResponse(true, createdAt);
+   }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
     @ResponseBody

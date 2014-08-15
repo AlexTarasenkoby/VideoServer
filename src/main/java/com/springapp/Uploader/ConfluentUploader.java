@@ -1,5 +1,6 @@
 package com.springapp.Uploader;
 
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.springapp.DAC.VideoDAO;
 import com.springapp.DAC.entities.Video;
@@ -9,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * Created by Kirill on 8/13/2014.
@@ -26,7 +28,7 @@ public class ConfluentUploader {
         return instance;
     }
 
-    public void saveObject(MultipartFile file){
+    public void saveObject(MultipartFile file, String createdDate, String description){
         ClientAmazonS3Factory clientAmazonS3Factory = ClientAmazonS3Factory.getInstance();
         ByteArrayInputStream input = null;
         try {
@@ -34,13 +36,17 @@ public class ConfluentUploader {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        clientAmazonS3Factory.getClient().putObject(AccessConfig.NAMEOFBUCKET, file.getOriginalFilename(), input, new ObjectMetadata());
         VideoDAO videoDAO = VideoDAO.getInstance();
         Video video = new Video();
-        video.setCreatedDate("");
-        video.setDescription("");
+        video.setCreatedDate(createdDate);
+        video.setDescription(description);
         video.setImageUrl("");
-        video.setVideoUrl(file.getOriginalFilename());
+        video.setVideoUrl("");
         videoDAO.add(video);
+        long id = videoDAO.getLastId();
+        clientAmazonS3Factory.getClient().putObject(AccessConfig.NAMEOFBUCKET, Integer.toString((int)id), input, new ObjectMetadata());
+        GeneratePresignedUrlRequest request1 = new GeneratePresignedUrlRequest(AccessConfig.NAMEOFBUCKET, Integer.toString((int)video.getId()));
+        URL url = clientAmazonS3Factory.getClient().generatePresignedUrl(request1);
+
     }
 }

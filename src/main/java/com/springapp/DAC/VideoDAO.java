@@ -2,6 +2,7 @@ package com.springapp.DAC;
 
 import com.springapp.DAC.config.util.ConnectionUtil;
 import com.springapp.DAC.entities.Video;
+import sun.rmi.runtime.Log;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -66,6 +67,25 @@ public class VideoDAO{
             e.printStackTrace();
         }
         return videos;
+    }
+
+    //select last_insert_id()
+    public Long getLastId(){
+        Statement statement = null;
+        ResultSet rs = null;
+        long id = 0;
+        try {
+            statement = ConnectionUtil.getConnection().createStatement();
+            rs = statement.executeQuery("SELECT LAST_INSERT_ID()");
+            if (rs.next()) {
+                id = rs.getInt(1);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return id;
     }
 
     public List<Video> getPage(int start, int limit){
