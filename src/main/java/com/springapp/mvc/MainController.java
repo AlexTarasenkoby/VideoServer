@@ -1,5 +1,6 @@
 package com.springapp.mvc;
 
+import com.amazonaws.services.elastictranscoder.model.Thumbnails;
 import com.springapp.DAC.VideoDAO;
 import com.springapp.DAC.entities.Video;
 import com.springapp.JSonClasses.Item;
@@ -7,6 +8,7 @@ import com.springapp.JSonClasses.JsonResponse;
 import com.springapp.JSonClasses.JsonResponseCollection;
 import com.springapp.JSonClasses.JsonVideo;
 import com.springapp.Uploader.ConfluentUploader;
+import com.springapp.videoUtility.VideoUtility;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -61,7 +63,7 @@ public class MainController {
                                                 @RequestParam("description") String description,
                                                 @RequestParam("createdAt") String createdAt,
                                                 @RequestParam("video") MultipartFile file) throws IOException {
-
+//        Thumbnails
         ConfluentUploader.getInstance().saveObject(file, createdAt, description);
         return new JsonResponse(true, createdAt);
    }

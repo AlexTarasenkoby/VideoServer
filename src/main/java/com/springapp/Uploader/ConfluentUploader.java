@@ -1,16 +1,24 @@
 package com.springapp.Uploader;
 
+import com.amazonaws.HttpMethod;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.springapp.DAC.VideoDAO;
 import com.springapp.DAC.entities.Video;
 import com.springapp.accessConfig.AccessConfig;
 import com.springapp.accessConfig.ClientAmazonS3Factory;
+import com.springapp.videoUtility.VideoUtility;
+import org.joda.time.DateTime;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 
 /**
  * Created by Kirill on 8/13/2014.
@@ -29,6 +37,7 @@ public class ConfluentUploader {
     }
 
     public void saveObject(MultipartFile file, String createdDate, String description){
+
         ClientAmazonS3Factory clientAmazonS3Factory = ClientAmazonS3Factory.getInstance();
         ByteArrayInputStream input = null;
         try {
@@ -44,9 +53,10 @@ public class ConfluentUploader {
         video.setVideoUrl("");
         videoDAO.add(video);
         long id = videoDAO.getLastId();
-        clientAmazonS3Factory.getClient().putObject(AccessConfig.NAMEOFBUCKET, Integer.toString((int)id), input, new ObjectMetadata());
-        GeneratePresignedUrlRequest request1 = new GeneratePresignedUrlRequest(AccessConfig.NAMEOFBUCKET, Integer.toString((int)video.getId()));
+        clientAmazonS3Factory.getClient().putObject(new PutObjectRequest(AccessConfig.NAMEOFBUCKET, file.getOriginalFilename(), input, new ObjectMetadata()).withCannedAcl(CannedAccessControlList.PublicRead));
+        GeneratePresignedUrlRequest request1 = new GeneratePresignedUrlRequest(AccessConfig.NAMEOFBUCKET, file.getOriginalFilename());
+        request1.setMethod(HttpMethod.GET);
         URL url = clientAmazonS3Factory.getClient().generatePresignedUrl(request1);
-
+        VideoUtility videoUtility = new VideoUtility(url);
     }
 }
