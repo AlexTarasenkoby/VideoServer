@@ -1,15 +1,11 @@
 package com.springapp.Uploader;
 
 import com.amazonaws.HttpMethod;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import com.springapp.DAC.VideoDAO;
 import com.springapp.DAC.entities.Video;
 import com.springapp.accessConfig.AccessConfig;
 import com.springapp.accessConfig.ClientAmazonS3Factory;
-import com.springapp.videoUtility.VideoUtility;
 import org.joda.time.DateTime;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,10 +49,10 @@ public class ConfluentUploader {
         video.setVideoUrl("");
         videoDAO.add(video);
         long id = videoDAO.getLastId();
-        clientAmazonS3Factory.getClient().putObject(new PutObjectRequest(AccessConfig.NAMEOFBUCKET, file.getOriginalFilename(), input, new ObjectMetadata()).withCannedAcl(CannedAccessControlList.PublicRead));
+        PutObjectResult obj = clientAmazonS3Factory.getClient().putObject(new PutObjectRequest(AccessConfig.NAMEOFBUCKET, file.getOriginalFilename(), input, new ObjectMetadata()).withCannedAcl(CannedAccessControlList.PublicRead));
+
         GeneratePresignedUrlRequest request1 = new GeneratePresignedUrlRequest(AccessConfig.NAMEOFBUCKET, file.getOriginalFilename());
         request1.setMethod(HttpMethod.GET);
         URL url = clientAmazonS3Factory.getClient().generatePresignedUrl(request1);
-        VideoUtility videoUtility = new VideoUtility(url);
     }
 }

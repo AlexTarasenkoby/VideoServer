@@ -12,6 +12,13 @@
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.jcodec</groupId>
+            <artifactId>jcodec</artifactId>
+            <version>0.1.5</version>
+        </dependency>
+
         <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jmf</artifactId>
