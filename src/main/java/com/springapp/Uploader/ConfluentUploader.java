@@ -49,7 +49,7 @@ public class ConfluentUploader {
         video.setVideoUrl("");
         videoDAO.add(video);
         long id = videoDAO.getLastId();
-        PutObjectResult obj = clientAmazonS3Factory.getClient().putObject(new PutObjectRequest(AccessConfig.NAMEOFBUCKET, file.getOriginalFilename(), input, new ObjectMetadata()).withCannedAcl(CannedAccessControlList.PublicRead));
+        PutObjectResult obj = clientAmazonS3Factory.getClient().putObject(new PutObjectRequest(AccessConfig.NAMEOFBUCKET, Integer.toString((int)id)+".mp4", input, new ObjectMetadata()).withCannedAcl(CannedAccessControlList.PublicRead));
 
         GeneratePresignedUrlRequest request1 = new GeneratePresignedUrlRequest(AccessConfig.NAMEOFBUCKET, file.getOriginalFilename());
         request1.setMethod(HttpMethod.GET);

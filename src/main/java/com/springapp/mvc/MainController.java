@@ -15,6 +15,7 @@ import com.springapp.accessConfig.AccessConfig;
 import com.springapp.accessConfig.ClientAmazonS3Factory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.jcodec.api.FrameGrab;
 import org.jcodec.api.JCodecException;
 import org.springframework.stereotype.Controller;
@@ -28,6 +29,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,28 +75,34 @@ public class MainController {
     public JsonResponse handleFileUpload(MultipartHttpServletRequest httpServletRequest,
                                                 @RequestParam("description") String description,
                                                 @RequestParam("createdAt") String createdAt,
-                                                @RequestParam("video") MultipartFile file) throws IOException {
+                                                @RequestParam("video") MultipartFile file) throws IOException, JCodecException {
+        ConfluentUploader.getInstance().saveObject(file, createdAt, description);
+
+
+        Files.deleteIfExists(Paths.get("test.mp4"));
+        Files.createFile(Paths.get("test.mp4"));
+        File fileVideo = new File("test.mp4");
+        FileOutputStream fileOutputStream = new FileOutputStream("test.mp4");
+        fileOutputStream.write(file.getBytes());
+        fileOutputStream.close();
         BufferedImage frame = null;
-        FileOutputStream fos = new FileOutputStream(file.getOriginalFilename());
-        fos.write(file.getBytes());
-        fos.close();
-        try {
-            frame = FrameGrab.getFrame(new File(file.getOriginalFilename()), 1);
-            } catch (Exception e) {
-            e.printStackTrace();
-        }
-        File deletedFile = new File(file.getOriginalFilename());
-        deletedFile.delete();
-        String nameWithoutExtension = FilenameUtils.removeExtension(file.getOriginalFilename());
-        String imageName = nameWithoutExtension + ".jpg";
-        ImageIO.write(frame, "jpg", new File(imageName));
-        File fileImage = new File(imageName);
+//        FileOutputStream fos = new FileOutputStream(file.getOriginalFilename());
+//        fos.write(file.getBytes());
+//        fos.close();
+        File fileFrame = new File("test.mp4");
+        frame = FrameGrab.getFrame(fileFrame, 1);
+//        File deletedFile = new File(file.getOriginalFilename());
+//        deletedFile.delete();
+
+        String imageName = VideoDAO.getInstance().getLastId() + ".jpg";
+
+        ImageIO.write(frame, "jpg", new File("test.jpg"));
+        File fileImage = new File("test.jpg");
         ByteArrayInputStream input = new ByteArrayInputStream(FileUtils.readFileToByteArray(fileImage));
         ClientAmazonS3Factory.getInstance()
                 .getClient()
                 .putObject(new PutObjectRequest(AccessConfig.NAMEOFBUCKET, imageName, input, new ObjectMetadata()).withCannedAcl(CannedAccessControlList.PublicRead));
         fileImage.delete();
-        ConfluentUploader.getInstance().saveObject(file, createdAt, description);
         return new JsonResponse(true, "OK");
    }
 
