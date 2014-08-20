@@ -69,7 +69,6 @@ public class VideoDAO{
         return videos;
     }
 
-    //select last_insert_id()
     public Long getLastId(){
         Statement statement = null;
         ResultSet rs = null;
@@ -110,5 +109,19 @@ public class VideoDAO{
             e.printStackTrace();
         }
         return videos;
+    }
+
+    public void updateImageUrlVideoUrl(long id, String imageUrl, String videoUrl){
+        String sql = "UPDATE video SET IMAGE_URL = ?, VIDEO_URL = ?  WHERE id = ?";
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = ConnectionUtil.getConnection().prepareStatement(sql);
+            preparedStatement.setString(1, imageUrl);
+            preparedStatement.setString(2, videoUrl);
+            preparedStatement.setLong(3, id);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

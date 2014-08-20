@@ -1,6 +1,5 @@
 package com.springapp.mvc;
 
-import com.amazonaws.services.elastictranscoder.model.Thumbnails;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -10,12 +9,11 @@ import com.springapp.JSonClasses.Item;
 import com.springapp.JSonClasses.JsonResponse;
 import com.springapp.JSonClasses.JsonResponseCollection;
 import com.springapp.JSonClasses.JsonVideo;
-import com.springapp.Uploader.ConfluentUploader;
+import com.springapp.VideoLoadUtil.ConfluentUploader;
+import com.springapp.VideoLoadUtil.ThumbnailUtil;
 import com.springapp.accessConfig.AccessConfig;
 import com.springapp.accessConfig.ClientAmazonS3Factory;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.jcodec.api.FrameGrab;
 import org.jcodec.api.JCodecException;
 import org.springframework.stereotype.Controller;
@@ -25,12 +23,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,34 +70,13 @@ public class MainController {
     public JsonResponse handleFileUpload(MultipartHttpServletRequest httpServletRequest,
                                                 @RequestParam("description") String description,
                                                 @RequestParam("createdAt") String createdAt,
-                                                @RequestParam("video") MultipartFile file) throws IOException, JCodecException {
+                                                @RequestParam("video") MultipartFile file){
         ConfluentUploader.getInstance().saveObject(file, createdAt, description);
-
-
-        Files.deleteIfExists(Paths.get("test.mp4"));
-        Files.createFile(Paths.get("test.mp4"));
-        File fileVideo = new File("test.mp4");
-        FileOutputStream fileOutputStream = new FileOutputStream("test.mp4");
-        fileOutputStream.write(file.getBytes());
-        fileOutputStream.close();
-        BufferedImage frame = null;
-//        FileOutputStream fos = new FileOutputStream(file.getOriginalFilename());
-//        fos.write(file.getBytes());
-//        fos.close();
-        File fileFrame = new File("test.mp4");
-        frame = FrameGrab.getFrame(fileFrame, 1);
-//        File deletedFile = new File(file.getOriginalFilename());
-//        deletedFile.delete();
-
-        String imageName = VideoDAO.getInstance().getLastId() + ".jpg";
-
-        ImageIO.write(frame, "jpg", new File("test.jpg"));
-        File fileImage = new File("test.jpg");
-        ByteArrayInputStream input = new ByteArrayInputStream(FileUtils.readFileToByteArray(fileImage));
-        ClientAmazonS3Factory.getInstance()
-                .getClient()
-                .putObject(new PutObjectRequest(AccessConfig.NAMEOFBUCKET, imageName, input, new ObjectMetadata()).withCannedAcl(CannedAccessControlList.PublicRead));
-        fileImage.delete();
+        try {
+            ThumbnailUtil.getInstance().getAndSaveThumbnail(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return new JsonResponse(true, "OK");
    }
 
